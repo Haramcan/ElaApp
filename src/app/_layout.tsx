@@ -71,6 +71,14 @@ function ThemedApp() {
           <Stack.Screen name="workout/log" options={{ title: 'Aktivität eintragen' }} />
           <Stack.Screen name="workout/session" options={{ title: 'Workout', headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="workout/plan" options={{ title: 'Workout' }} />
+          <Stack.Screen name="gym/index" options={{ title: 'Krafttraining' }} />
+          <Stack.Screen name="gym/session" options={{ title: 'Training', gestureEnabled: false }} />
+          <Stack.Screen name="gym/exercises" options={{ title: 'Geräte & Übungen' }} />
+          <Stack.Screen name="gym/exercise" options={{ title: 'Übung' }} />
+          <Stack.Screen name="gym/session-detail" options={{ title: 'Training' }} />
+          <Stack.Screen name="gym/plans" options={{ title: 'Trainingspläne' }} />
+          <Stack.Screen name="gym/plan-edit" options={{ title: 'Plan bearbeiten' }} />
+          <Stack.Screen name="gym/generator" options={{ title: 'Plan erstellen lassen' }} />
           <Stack.Screen name="challenge" options={{ title: 'Tages-Challenges' }} />
           <Stack.Screen name="weight" options={{ title: 'Gewicht & Maße' }} />
           <Stack.Screen name="fasting" options={{ title: 'Intervallfasten' }} />

@@ -28,6 +28,7 @@ export default function More() {
     {
       title: 'Funktionen',
       items: [
+        { title: 'Krafttraining & Trainingspläne', subtitle: `${state.gym.plans.length} Pläne · ${state.gym.sessions.length} Trainings`, icon: 'weight-lifter', href: '/gym' },
         { title: 'Intervallfasten', subtitle: state.fasting.active ? 'Läuft gerade' : `${state.fasting.targetHours}:${24 - state.fasting.targetHours}`, icon: 'timer-sand', href: '/fasting' },
         { title: 'Gewicht & Maße', icon: 'scale-bathroom', href: '/weight' },
         { title: 'Meine Lebensmittel', subtitle: `${state.customFoods.length} eigene · ${state.favorites.length} Favoriten`, icon: 'food-apple-outline', href: '/food/my-foods' },

@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState as RNAppState } from 'react-native';
 
-import { calorieGoal } from './calc';
+import { calorieGoal, metKcal } from './calc';
+import { completedSets } from './gym';
 import { createInitialState, goalsFromProfile, migrateState } from './defaults';
 import { latestWeightKg } from './selectors';
 import type {
@@ -11,6 +12,12 @@ import type {
   FoodEntry,
   FoodItem,
   Goals,
+  GymExercise,
+  GymExerciseLog,
+  GymSession,
+  PlanDay,
+  PlanExercise,
+  TrainingPlan,
   MealType,
   Profile,
   Reminder,
@@ -228,6 +235,179 @@ export function createActions(set: (fn: (s: AppState) => AppState) => void) {
     },
     removeFast(id: string) {
       set((s) => ({ ...s, fasting: { ...s.fasting, history: s.fasting.history.filter((f) => f.id !== id) } }));
+    },
+
+    // ---------- gym ----------
+    startGymSession(init: { name: string; planId?: string; dayId?: string; exercises: GymExerciseLog[] }): string {
+      const id = uid('gs_');
+      const now = Date.now();
+      set((s) => {
+        if (s.gym.active) return s;
+        const session: GymSession = { id, date: todayKey(), start: now, ...init };
+        return { ...s, gym: { ...s.gym, active: session } };
+      });
+      return id;
+    },
+    updateActiveSession(patch: Partial<Pick<GymSession, 'name' | 'note'>>) {
+      set((s) => (s.gym.active ? { ...s, gym: { ...s.gym, active: { ...s.gym.active, ...patch } } } : s));
+    },
+    addActiveLog(log: GymExerciseLog) {
+      set((s) => (s.gym.active ? { ...s, gym: { ...s.gym, active: { ...s.gym.active, exercises: [...s.gym.active.exercises, log] } } } : s));
+    },
+    updateActiveLog(key: string, fn: (log: GymExerciseLog) => GymExerciseLog) {
+      set((s) => {
+        const a = s.gym.active;
+        if (!a) return s;
+        return { ...s, gym: { ...s.gym, active: { ...a, exercises: a.exercises.map((l) => (l.key === key ? fn(l) : l)) } } };
+      });
+    },
+    removeActiveLog(key: string) {
+      set((s) => {
+        const a = s.gym.active;
+        if (!a) return s;
+        return { ...s, gym: { ...s.gym, active: { ...a, exercises: a.exercises.filter((l) => l.key !== key) } } };
+      });
+    },
+    moveActiveLog(key: string, dir: -1 | 1) {
+      set((s) => {
+        const a = s.gym.active;
+        if (!a) return s;
+        const list = [...a.exercises];
+        const i = list.findIndex((l) => l.key === key);
+        const j = i + dir;
+        if (i < 0 || j < 0 || j >= list.length) return s;
+        [list[i], list[j]] = [list[j], list[i]];
+        return { ...s, gym: { ...s.gym, active: { ...a, exercises: list } } };
+      });
+    },
+    /** Saves the active session (only exercises with completed sets) and logs it as an activity */
+    finishGymSession(bodyWeightKg: number) {
+      const workoutId = uid('wo_');
+      set((s) => {
+        const a = s.gym.active;
+        if (!a) return s;
+        const end = Date.now();
+        const exercises = a.exercises
+          .map((l) => ({ ...l, sets: l.sets.filter((x) => x.done && (x.reps ?? 0) > 0) }))
+          .filter((l) => completedSets(l).length > 0);
+        if (exercises.length === 0) return { ...s, gym: { ...s.gym, active: undefined } };
+        const minutes = Math.max(5, Math.min(240, Math.round((end - a.start) / 60000)));
+        const session: GymSession = { ...a, end, exercises, workoutId };
+        return {
+          ...s,
+          gym: { ...s.gym, active: undefined, sessions: [...s.gym.sessions, session] },
+          workouts: [
+            ...s.workouts,
+            {
+              id: workoutId,
+              date: a.date,
+              exerciseId: 'weights',
+              name: `Krafttraining: ${a.name}`,
+              durationMin: minutes,
+              kcal: metKcal(5, bodyWeightKg, minutes),
+              sets: exercises.reduce((n, l) => n + l.sets.length, 0),
+              createdAt: end,
+            },
+          ],
+        };
+      });
+    },
+    discardGymSession() {
+      set((s) => ({ ...s, gym: { ...s.gym, active: undefined } }));
+    },
+    deleteGymSession(id: string) {
+      set((s) => {
+        const sess = s.gym.sessions.find((x) => x.id === id);
+        return {
+          ...s,
+          gym: { ...s.gym, sessions: s.gym.sessions.filter((x) => x.id !== id) },
+          workouts: sess?.workoutId ? s.workouts.filter((w) => w.id !== sess.workoutId) : s.workouts,
+        };
+      });
+    },
+    saveGymExercise(ex: GymExercise) {
+      set((s) => {
+        const exists = s.gym.customExercises.some((e) => e.id === ex.id);
+        const customExercises = exists ? s.gym.customExercises.map((e) => (e.id === ex.id ? ex : e)) : [ex, ...s.gym.customExercises];
+        return { ...s, gym: { ...s.gym, customExercises } };
+      });
+    },
+    deleteGymExercise(id: string) {
+      set((s) => ({ ...s, gym: { ...s.gym, customExercises: s.gym.customExercises.filter((e) => e.id !== id) } }));
+    },
+    setGymNote(exerciseId: string, note: string) {
+      set((s) => {
+        const notes = { ...s.gym.notes };
+        if (note.trim()) notes[exerciseId] = note;
+        else delete notes[exerciseId];
+        return { ...s, gym: { ...s.gym, notes } };
+      });
+    },
+
+    // ---------- training plans ----------
+    savePlan(plan: TrainingPlan, makeActive = false) {
+      set((s) => {
+        const exists = s.gym.plans.some((p) => p.id === plan.id);
+        const plans = exists ? s.gym.plans.map((p) => (p.id === plan.id ? plan : p)) : [...s.gym.plans, plan];
+        return { ...s, gym: { ...s.gym, plans, activePlanId: makeActive || !s.gym.activePlanId ? plan.id : s.gym.activePlanId } };
+      });
+    },
+    createPlan(name: string): string {
+      const id = uid('plan_');
+      const dayId = uid('day_');
+      set((s) => ({
+        ...s,
+        gym: {
+          ...s.gym,
+          plans: [...s.gym.plans, { id, name, days: [{ id: dayId, name: 'Tag A', exercises: [] }], createdAt: Date.now() }],
+          activePlanId: s.gym.activePlanId ?? id,
+        },
+      }));
+      return id;
+    },
+    deletePlan(id: string) {
+      set((s) => {
+        const plans = s.gym.plans.filter((p) => p.id !== id);
+        return { ...s, gym: { ...s.gym, plans, activePlanId: s.gym.activePlanId === id ? plans[0]?.id : s.gym.activePlanId } };
+      });
+    },
+    setActivePlan(id: string | undefined) {
+      set((s) => ({ ...s, gym: { ...s.gym, activePlanId: id } }));
+    },
+    updatePlan(id: string, fn: (p: TrainingPlan) => TrainingPlan) {
+      set((s) => ({ ...s, gym: { ...s.gym, plans: s.gym.plans.map((p) => (p.id === id ? fn(p) : p)) } }));
+    },
+    addPlanDay(planId: string, name: string): string {
+      const dayId = uid('day_');
+      set((s) => ({
+        ...s,
+        gym: { ...s.gym, plans: s.gym.plans.map((p) => (p.id === planId ? { ...p, days: [...p.days, { id: dayId, name, exercises: [] }] } : p)) },
+      }));
+      return dayId;
+    },
+    updatePlanDay(planId: string, dayId: string, fn: (d: PlanDay) => PlanDay) {
+      set((s) => ({
+        ...s,
+        gym: { ...s.gym, plans: s.gym.plans.map((p) => (p.id === planId ? { ...p, days: p.days.map((d) => (d.id === dayId ? fn(d) : d)) } : p)) },
+      }));
+    },
+    removePlanDay(planId: string, dayId: string) {
+      set((s) => ({
+        ...s,
+        gym: { ...s.gym, plans: s.gym.plans.map((p) => (p.id === planId ? { ...p, days: p.days.filter((d) => d.id !== dayId) } : p)) },
+      }));
+    },
+    addPlanExercise(planId: string, dayId: string, exerciseId: string, defaults: Partial<PlanExercise> = {}) {
+      const ex: PlanExercise = { key: uid('pe_'), exerciseId, sets: 3, repsMin: 8, repsMax: 12, restSec: 90, ...defaults };
+      set((s) => ({
+        ...s,
+        gym: {
+          ...s.gym,
+          plans: s.gym.plans.map((p) =>
+            p.id === planId ? { ...p, days: p.days.map((d) => (d.id === dayId ? { ...d, exercises: [...d.exercises, ex] } : d)) } : p,
+          ),
+        },
+      }));
     },
 
     // ---------- misc ----------

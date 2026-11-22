@@ -18,6 +18,13 @@ Eine vollständige Fitness-App für **iOS und Android** (Expo / React Native, Ty
 - 7 geführte Workouts (u. a. 7-Minuten-Workout, HIIT, Bauch, Beine) mit Intervall-Timer, Pause/Skip, Haptik, Bildschirm bleibt an
 - Trainingskalorien optional dem Tagesbudget gutschreiben (einstellbarer Prozentsatz)
 
+**Krafttraining im Fitnessstudio**
+- Geräte-Bibliothek mit ~60 typischen Studio-Geräten und Übungen (Beinpresse, Latzug, Brustpresse, Butterfly, Abduktoren …) + eigene Geräte anlegen
+- Pro Satz Gewicht (kg/lb) und Wiederholungen eintragen und abhaken, automatischer Pausen-Timer
+- **„Letztes Mal“** direkt am Gerät (z. B. „15 kg × 12, 12, 12“) und **Steigerungs-Empfehlung** („heute 17,5 kg probieren“), Felder werden vorausgefüllt
+- Geräte-Einstellungen merken (Sitzhöhe, Lehne), Verlauf & Diagramm pro Gerät, Bestwert, geschätztes 1RM, Rekord-Erkennung
+- **Trainingspläne**: selbst anlegen (Tage, Übungen, Sätze, Wdh.-Bereich, Pause) oder **erstellen lassen** (Ziel, Tage/Woche, Erfahrung, Geräte/Freihantel, Schwerpunkt); der nächste Trainingstag wird automatisch vorgeschlagen
+
 **Erinnerungen (lokale Push-Benachrichtigungen)**
 - Wasser (Intervall), Frühstück/Mittag/Abendessen, Tages-Challenge, Training, Wiegen, Tagesziel-Check, Fastenende, eigene Erinnerungen
 - Feste Uhrzeiten oder Intervalle, Wochentage frei wählbar
@@ -57,6 +64,7 @@ src/app/            Screens (Expo Router)
   (tabs)/           Heute, Ernährung, Training, Fortschritt, Mehr
   food/             Suche, Portion, eigenes Lebensmittel, Schnell-Eintrag
   workout/          Aktivität eintragen, Workout-Details, Workout-Timer
+  gym/              Krafttraining: Übersicht, laufendes Training, Geräte, Verlauf, Pläne, Generator
   settings/         Profil, Ziele, Erinnerungen, Challenges, App, Daten, Info
 src/components/     UI-Bausteine, Diagramme, Toasts, Hintergrund-Effekte
 src/lib/            Datenmodell, Store, Berechnungen, Open-Food-Facts-Client,

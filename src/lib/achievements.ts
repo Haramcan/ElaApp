@@ -6,6 +6,7 @@ import {
   longestStreak,
   totalReps,
 } from './selectors';
+import { sessionVolume } from './gym';
 import type { AppState } from './types';
 
 export interface Achievement {
@@ -115,6 +116,27 @@ export const ACHIEVEMENTS: Achievement[] = [
     description: 'Trage 5 Mal dein Gewicht ein.',
     icon: 'scale-bathroom',
     progress: (s) => [Math.min(5, s.weights.length), 5],
+  },
+  {
+    id: 'gym_first',
+    title: 'Ab ins Studio',
+    description: 'Schließe dein erstes Krafttraining ab.',
+    icon: 'weight-lifter',
+    progress: (s) => [Math.min(1, s.gym.sessions.length), 1],
+  },
+  {
+    id: 'gym_20',
+    title: 'Stammgast',
+    description: 'Absolviere 20 Krafttrainings.',
+    icon: 'weight-lifter',
+    progress: (s) => [Math.min(20, s.gym.sessions.length), 20],
+  },
+  {
+    id: 'gym_volume_10t',
+    title: '10 Tonnen bewegt',
+    description: 'Bewege insgesamt 10.000 kg (Gewicht × Wiederholungen).',
+    icon: 'weight',
+    progress: (s) => [Math.min(10000, s.gym.sessions.reduce((v, x) => v + sessionVolume(x), 0)), 10000],
   },
   {
     id: 'fasting_first',

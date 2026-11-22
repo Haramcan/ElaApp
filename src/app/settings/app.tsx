@@ -97,6 +97,19 @@ export default function AppSettings() {
         <SwitchRow title="Bildschirm anlassen" subtitle="Während geführter Workouts" value={s.keepScreenOn} onChange={(v) => set({ keepScreenOn: v })} icon="cellphone-screenshot" />
       </Card>
 
+      <Txt variant="label">Krafttraining / Gym</Txt>
+      <Card padded={false} style={{ paddingHorizontal: 14 }}>
+        <Row justify="space-between" style={{ paddingVertical: 10 }}>
+          <Txt style={{ flex: 1 }}>Gewichtssteigerung</Txt>
+          <Stepper value={s.gymWeightStep} onChange={(v) => set({ gymWeightStep: v })} step={0.5} min={0.5} max={10} format={(v) => `${String(v).replace('.', ',')} kg`} label="Steigerung" />
+        </Row>
+        <Row justify="space-between" style={{ paddingVertical: 10 }}>
+          <Txt style={{ flex: 1 }}>Standard-Satzpause</Txt>
+          <Stepper value={s.gymRestSec} onChange={(v) => set({ gymRestSec: v })} step={15} min={15} max={300} format={(v) => `${v} s`} label="Satzpause" />
+        </Row>
+        <SwitchRow title="Pausen-Timer automatisch" subtitle="Startet, sobald du einen Satz abhakst" value={s.gymAutoRest} onChange={(v) => set({ gymAutoRest: v })} icon="timer-outline" />
+      </Card>
+
       <Txt variant="label">Gerät</Txt>
       <Card padded={false} style={{ paddingHorizontal: 14 }}>
         <SwitchRow

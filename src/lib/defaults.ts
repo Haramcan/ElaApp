@@ -31,6 +31,9 @@ export const DEFAULT_SETTINGS: Settings = {
   workoutWorkSec: 30,
   countdownBeforeWorkout: true,
   keepScreenOn: true,
+  gymWeightStep: 2.5,
+  gymRestSec: 90,
+  gymAutoRest: true,
 };
 
 export function goalsFromProfile(profile: Profile, weightKg: number, prev?: Partial<Goals>): Goals {
@@ -173,6 +176,7 @@ export function createInitialState(): AppState {
     fasting: { targetHours: 16, history: [] },
     stats: { scans: 0, guidedWorkouts: 0 },
     unlockedAchievements: {},
+    gym: { sessions: [], plans: [], customExercises: [], notes: {} },
   };
 }
 
@@ -212,5 +216,16 @@ export function migrateState(raw: unknown): AppState {
     fasting: { ...base.fasting, ...obj(r.fasting, base.fasting), history: arr(r.fasting?.history, []) },
     stats: { ...base.stats, ...obj(r.stats, base.stats) },
     unlockedAchievements: obj(r.unlockedAchievements, {}),
+    gym: (() => {
+      const g = obj<Partial<AppState['gym']>>(r.gym, {});
+      return {
+        sessions: arr(g.sessions, []),
+        active: g.active && typeof g.active === 'object' ? g.active : undefined,
+        plans: arr(g.plans, []),
+        activePlanId: typeof g.activePlanId === 'string' ? g.activePlanId : undefined,
+        customExercises: arr(g.customExercises, []),
+        notes: obj(g.notes, {}),
+      };
+    })(),
   };
 }

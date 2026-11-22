@@ -54,6 +54,12 @@ export interface Settings {
   workoutWorkSec: number;
   countdownBeforeWorkout: boolean;
   keepScreenOn: boolean;
+  /** weight increment (kg) used for progression suggestions in the gym */
+  gymWeightStep: number;
+  /** default rest between sets in the gym (seconds) */
+  gymRestSec: number;
+  /** start the rest timer automatically after a set is checked */
+  gymAutoRest: boolean;
 }
 
 export interface Nutrients {
@@ -166,6 +172,87 @@ export interface FastingSession {
   targetHours: number;
 }
 
+// ---------- gym / strength training ----------
+
+export type MuscleGroup = 'brust' | 'ruecken' | 'schultern' | 'beine' | 'po' | 'arme' | 'bauch' | 'ganzkoerper';
+export type GymEquipment = 'maschine' | 'kabel' | 'langhantel' | 'kurzhantel' | 'koerper' | 'sonstiges';
+
+export interface GymExercise {
+  id: string;
+  name: string;
+  muscle: MuscleGroup;
+  equipment: GymEquipment;
+  /** exercise without external load (e.g. pull-ups) – weight is optional/additional */
+  bodyweight?: boolean;
+  tip?: string;
+  custom?: boolean;
+}
+
+export interface GymSet {
+  weightKg: number | null;
+  reps: number | null;
+  done: boolean;
+}
+
+export interface GymExerciseLog {
+  /** unique within the session */
+  key: string;
+  exerciseId: string;
+  sets: GymSet[];
+  /** target from the plan (optional) */
+  repsMin?: number;
+  repsMax?: number;
+  restSec?: number;
+}
+
+export interface GymSession {
+  id: string;
+  date: string;
+  start: number;
+  end?: number;
+  name: string;
+  planId?: string;
+  dayId?: string;
+  exercises: GymExerciseLog[];
+  /** linked entry in the activity log (calories, streak) */
+  workoutId?: string;
+  note?: string;
+}
+
+export interface PlanExercise {
+  key: string;
+  exerciseId: string;
+  sets: number;
+  repsMin: number;
+  repsMax: number;
+  restSec: number;
+}
+
+export interface PlanDay {
+  id: string;
+  name: string;
+  exercises: PlanExercise[];
+}
+
+export interface TrainingPlan {
+  id: string;
+  name: string;
+  description?: string;
+  days: PlanDay[];
+  createdAt: number;
+  generated?: boolean;
+}
+
+export interface GymState {
+  sessions: GymSession[];
+  active?: GymSession;
+  plans: TrainingPlan[];
+  activePlanId?: string;
+  customExercises: GymExercise[];
+  /** machine settings such as seat height per exercise */
+  notes: Record<string, string>;
+}
+
 export interface AppState {
   version: number;
   onboarded: boolean;
@@ -187,4 +274,5 @@ export interface AppState {
   /** stats used for achievements */
   stats: { scans: number; guidedWorkouts: number };
   unlockedAchievements: Record<string, number>;
+  gym: GymState;
 }

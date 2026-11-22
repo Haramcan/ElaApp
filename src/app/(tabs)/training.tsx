@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 
+import { GymSection } from '../../components/GymSection';
 import { useToast } from '../../components/Toast';
 import { Badge, Button, Card, Divider, EmptyState, Icon, IconButton, ListItem, ProgressBar, Row, Screen, SectionHeader, StatTile, Txt } from '../../components/ui';
 import { energyValue, formatNumber } from '../../lib/calc';
@@ -53,7 +54,9 @@ export default function Training() {
         <StatTile label="Einheiten" value={String(week.length)} icon="dumbbell" />
       </Row>
 
-      <Button title="Aktivität eintragen" icon="plus" onPress={() => router.push('/workout/log')} testID="log-workout" />
+      <GymSection />
+
+      <Button title="Andere Aktivität eintragen" icon="plus" variant="secondary" onPress={() => router.push('/workout/log')} testID="log-workout" />
 
       <Card onPress={() => router.push('/challenge')} testID="training-challenges">
         <Row gap={12}>
