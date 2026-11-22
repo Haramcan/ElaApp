@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "FitLife",
+    "slug": "fitlife",
+    "version": "1.0.0",
+    "scheme": "fitlife",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.elaapp.fitlife",
+      "infoPlist": {
+        "NSCameraUsageDescription": "FitLife nutzt die Kamera, um Barcodes von Lebensmitteln zu scannen.",
+        "NSMotionUsageDescription": "FitLife liest deine Schritte aus, um dein tägliches Schrittziel anzuzeigen."
+      }
+    },
+    "android": {
+      "package": "com.elaapp.fitlife",
+      "adaptiveIcon": {
+        "backgroundColor": "#16a34a",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FitLife nutzt die Kamera, um Barcodes von Lebensmitteln zu scannen.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#15803d"
+        }
+      ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "FitLife liest deine Schritte aus, um dein tägliches Schrittziel anzuzeigen."
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
