@@ -25,6 +25,14 @@ Eine vollständige Fitness-App für **iOS und Android** (Expo / React Native, Ty
 - Geräte-Einstellungen merken (Sitzhöhe, Lehne), Verlauf & Diagramm pro Gerät, Bestwert, geschätztes 1RM, Rekord-Erkennung
 - **Trainingspläne**: selbst anlegen (Tage, Übungen, Sätze, Wdh.-Bereich, Pause) oder **erstellen lassen** (Ziel, Tage/Woche, Erfahrung, Geräte/Freihantel, Schwerpunkt); der nächste Trainingstag wird automatisch vorgeschlagen
 
+**Ernährung+, Gesundheit & Motivation**
+- Rezepte & Mahlzeit-Vorlagen, „Was kann ich noch essen?“-Vorschläge passend zum Restbudget
+- Kalorien per Foto (KI, Claude) mit editierbarer Schätzung
+- Muskel-Übersicht (Körperkarte, Erholung, Empfehlung), Trainingspläne teilen & importieren (auch „für jemand anderen erstellen“)
+- Wochenrückblick (jeden Sonntag als Benachrichtigung), Fortschrittsfotos, Schlaf & Stimmung
+- Apple Health / Health Connect (Schritte, Schlaf, Gewicht lesen; Gewicht & Trainings schreiben)
+- Homescreen-Widgets (anpassbar), Live Activity in der Dynamic Island, Android-Live-Benachrichtigung
+
 **Erinnerungen (lokale Push-Benachrichtigungen)**
 - Wasser (Intervall), Frühstück/Mittag/Abendessen, Tages-Challenge, Training, Wiegen, Tagesziel-Check, Fastenende, eigene Erinnerungen
 - Feste Uhrzeiten oder Intervalle, Wochentage frei wählbar
@@ -38,7 +46,11 @@ Eine vollständige Fitness-App für **iOS und Android** (Expo / React Native, Ty
 - Einstellungen: Hell/Dunkel/System, kcal/kJ, kg/lb, Wochenbeginn, Glas-/Flaschengröße, Haptik, Workout-Intervalle
 - Backup als JSON exportieren/importieren, Tagebuch als CSV, alles zurücksetzen
 
-## Auf dem Handy starten
+## Als App installieren (Download-Link)
+
+Siehe **[APP-INSTALLIEREN.md](APP-INSTALLIEREN.md)** – Android-APK per Link, iPhone per Ad-hoc-Link, Updates ohne Neuinstallation.
+
+## Entwicklung auf dem Handy starten
 
 ```bash
 npm install
