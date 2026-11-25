@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,15 +11,17 @@ import { BUILTIN_FOODS, searchLocal } from '../../lib/foods';
 import { useToday } from '../../lib/hooks';
 import { OffError, searchProducts } from '../../lib/openfoodfacts';
 import { useHaptics } from '../../lib/platform';
+import { recipeToFood } from '../../lib/recipes';
 import { MEALS, mealForNow, mealLabel } from '../../lib/selectors';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import type { FoodItem, MealType } from '../../lib/types';
 
-type Tab = 'recent' | 'favorites' | 'custom';
+type Tab = 'recent' | 'favorites' | 'custom' | 'recipes';
 
 export default function FoodSearch() {
-  const params = useLocalSearchParams<{ meal?: string; date?: string }>();
+  const params = useLocalSearchParams<{ meal?: string; date?: string; recipeId?: string }>();
+  const recipeId = params.recipeId || undefined;
   const { state, actions } = useStore();
   const { colors } = useTheme();
   const toast = useToast();
@@ -64,11 +66,17 @@ export default function FoodSearch() {
 
   const open = (f: FoodItem) => {
     putFood(f);
-    router.push({ pathname: '/food/add', params: { foodId: f.id, meal, date } });
+    router.push({ pathname: '/food/add', params: { foodId: f.id, meal, date, recipeId: recipeId ?? '' } });
   };
 
   const quickAdd = (f: FoodItem) => {
     const amount = f.servingSize ?? 100;
+    if (recipeId) {
+      actions.addRecipeIngredient(recipeId, f, amount);
+      haptics.success();
+      toast({ message: `${f.name} (${formatNumber(amount)} ${f.unit}) zum Rezept hinzugefügt`, icon: 'check' });
+      return;
+    }
     actions.addFood(f, amount, meal, date);
     haptics.success();
     toast({ message: `${f.name} (${formatNumber(amount)} ${f.unit}) zu ${mealLabel(meal)} hinzugefügt`, icon: 'check' });
@@ -86,10 +94,13 @@ export default function FoodSearch() {
       ? state.recentFoods
       : tab === 'favorites'
         ? state.favorites
-        : state.customFoods;
+        : tab === 'recipes'
+          ? state.recipes.map(recipeToFood).filter((f): f is FoodItem => !!f)
+          : state.customFoods;
 
   return (
     <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Stack.Screen options={{ title: recipeId ? 'Zutat hinzufügen' : 'Lebensmittel hinzufügen' }} />
       <View style={{ padding: 16, gap: 12 }}>
         <Row gap={8}>
           <View style={{ flex: 1 }}>
@@ -104,20 +115,24 @@ export default function FoodSearch() {
               clearButtonMode="while-editing"
             />
           </View>
-          <IconButton icon="barcode-scan" label="Barcode scannen" bg={colors.primarySoft} color={colors.primary} onPress={() => router.push({ pathname: '/scan', params: { meal, date } })} />
+          <IconButton icon="barcode-scan" label="Barcode scannen" bg={colors.primarySoft} color={colors.primary} onPress={() => router.push({ pathname: '/scan', params: { meal, date, recipeId: recipeId ?? '' } })} />
         </Row>
-        <Row gap={6} wrap>
-          {MEALS.map((m) => (
-            <Chip key={m.id} label={m.label} selected={meal === m.id} onPress={() => setMeal(m.id)} testID={`meal-chip-${m.id}`} />
-          ))}
-        </Row>
+        {!recipeId ? (
+          <Row gap={6} wrap>
+            {MEALS.map((m) => (
+              <Chip key={m.id} label={m.label} selected={meal === m.id} onPress={() => setMeal(m.id)} testID={`meal-chip-${m.id}`} />
+            ))}
+          </Row>
+        ) : null}
         {!searching ? (
           <Row gap={6}>
             <Chip label="Zuletzt" selected={tab === 'recent'} onPress={() => setTab('recent')} icon="history" />
             <Chip label="Favoriten" selected={tab === 'favorites'} onPress={() => setTab('favorites')} icon="star" />
             <Chip label="Eigene" selected={tab === 'custom'} onPress={() => setTab('custom')} icon="account" />
+            {!recipeId ? <Chip label="Rezepte" selected={tab === 'recipes'} onPress={() => setTab('recipes')} icon="chef-hat" testID="tab-recipes" /> : null}
           </Row>
         ) : null}
+        {!recipeId ? (
         <Row gap={8}>
           <Pressable onPress={() => router.push({ pathname: '/food/quick', params: { meal, date } })} style={{ flex: 1 }} accessibilityRole="button" testID="food-quick">
             <Row gap={6} style={{ padding: 10, borderRadius: 12, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
@@ -135,7 +150,16 @@ export default function FoodSearch() {
               </Txt>
             </Row>
           </Pressable>
+          <Pressable onPress={() => router.push({ pathname: '/food/suggest', params: { meal, date } })} style={{ flex: 1 }} accessibilityRole="button" testID="food-suggest">
+            <Row gap={6} style={{ padding: 10, borderRadius: 12, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border }}>
+              <Icon name="lightbulb-on-outline" size={18} color={colors.primary} />
+              <Txt variant="small" bold>
+                Ideen
+              </Txt>
+            </Row>
+          </Pressable>
         </Row>
+        ) : null}
       </View>
 
       <FlatList
@@ -182,7 +206,9 @@ export default function FoodSearch() {
             <View style={{ paddingVertical: 28, alignItems: 'center', gap: 6 }}>
               <Icon name={tab === 'favorites' ? 'star-outline' : tab === 'custom' ? 'account-outline' : 'history'} size={32} color={colors.muted} />
               <Txt variant="small" center>
-                {tab === 'favorites'
+                {tab === 'recipes'
+                  ? 'Noch keine Rezepte. Lege sie unter „Ernährung → Rezepte“ an.'
+                  : tab === 'favorites'
                   ? 'Noch keine Favoriten. Markiere Lebensmittel mit dem Stern.'
                   : tab === 'custom'
                     ? 'Noch keine eigenen Lebensmittel angelegt.'

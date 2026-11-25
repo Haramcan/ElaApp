@@ -5,7 +5,11 @@ import { useEffect, useRef } from 'react';
 import { AppState as RNAppState, Platform } from 'react-native';
 
 import { ACHIEVEMENTS, newlyUnlocked } from '../lib/achievements';
-import { dateKey } from '../lib/date';
+import { dateKey, parseKey } from '../lib/date';
+import { readHealth, writeWeight, writeWorkout } from '../lib/health';
+import { buildLiveProps, buildWidgetProps } from '../lib/widgetData';
+import FitWidget from '../widgets/FitWidget';
+import { hideLiveStatus, liveSupported, showLiveStatus } from '../widgets/liveController';
 import { useToday } from '../lib/hooks';
 import { notificationsSupported, setupNotificationHandler, syncNotifications } from '../lib/notifications';
 import { useHaptics } from '../lib/platform';
@@ -82,8 +86,79 @@ export function AppEffects() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, state]);
 
+  // --- home screen widget + Live Activity / ongoing notification
+  const lastWidget = useRef('');
+  const lastLive = useRef('');
+  useEffect(() => {
+    if (!ready || !state.onboarded || Platform.OS === 'web') return;
+    const t = setTimeout(() => {
+      const s = stateRef.current;
+      const widget = buildWidgetProps(s, today);
+      const wsig = JSON.stringify({ ...widget, updated: '' });
+      if (wsig !== lastWidget.current) {
+        lastWidget.current = wsig;
+        try {
+          FitWidget.updateSnapshot(widget);
+        } catch {
+          // widgets not available in this build
+        }
+      }
+      if (!liveSupported) return;
+      const live = s.settings.liveStatus ? buildLiveProps(s, today) : null;
+      const lsig = live ? JSON.stringify({ ...live, progress: Math.round(live.progress * 50) }) : 'off';
+      if (lsig === lastLive.current) return;
+      lastLive.current = lsig;
+      if (live) void showLiveStatus(live);
+      else void hideLiveStatus();
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [ready, state, today]);
+
+  // --- Apple Health / Health Connect: read on start + foreground, write new weights & workouts
+  const healthOn = state.settings.healthSync && state.onboarded && ready;
+  useEffect(() => {
+    if (!healthOn || Platform.OS === 'web') return;
+    let last = 0;
+    const pull = () => {
+      if (Date.now() - last < 5 * 60000) return;
+      last = Date.now();
+      void readHealth(7)
+        .then((d) => actions.mergeHealthData(d))
+        .catch(() => {});
+    };
+    pull();
+    const sub = RNAppState.addEventListener('change', (s) => {
+      if (s === 'active') pull();
+    });
+    return () => sub.remove();
+  }, [healthOn, actions]);
+
+  const knownIds = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    const ids = new Set([...state.workouts.map((w) => w.id), ...state.weights.map((w) => w.id)]);
+    const prev = knownIds.current;
+    knownIds.current = ids;
+    if (!prev || !healthOn || Platform.OS === 'web') return;
+    const fresh = (createdAt: number) => Date.now() - createdAt < 2 * 60000;
+    for (const w of state.weights) {
+      if (!prev.has(w.id) && fresh(w.createdAt)) {
+        const d = parseKey(w.date);
+        d.setHours(8, 0, 0, 0);
+        void writeWeight(w.kg, d);
+      }
+    }
+    for (const w of state.workouts) {
+      if (!prev.has(w.id) && fresh(w.createdAt)) {
+        const end = new Date(w.createdAt);
+        const start = new Date(w.createdAt - w.durationMin * 60000);
+        void writeWorkout({ start, end, kcal: w.kcal, title: w.name, strength: w.exerciseId === 'weights' || w.exerciseId === 'pushups' || w.exerciseId === 'squats' });
+      }
+    }
+  }, [ready, healthOn, state.workouts, state.weights]);
+
   // --- pedometer
-  const usePedo = state.settings.usePedometer && state.onboarded && ready;
+  const usePedo = state.settings.usePedometer && state.onboarded && ready && !(Platform.OS === 'ios' && state.settings.healthSync);
   useEffect(() => {
     if (!usePedo || Platform.OS === 'web') return;
     let cancelled = false;

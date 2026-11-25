@@ -14,7 +14,7 @@ import { useTheme } from '../lib/theme';
 type Status = { kind: 'scanning' } | { kind: 'loading'; code: string } | { kind: 'notfound'; code: string; message: string } | { kind: 'error'; code: string; message: string };
 
 export default function Scan() {
-  const params = useLocalSearchParams<{ meal?: string; date?: string }>();
+  const params = useLocalSearchParams<{ meal?: string; date?: string; recipeId?: string }>();
   const { state, actions } = useStore();
   const { colors } = useTheme();
   const haptics = useHaptics();
@@ -35,7 +35,7 @@ export default function Scan() {
         const food = local ?? (await fetchProductByBarcode(clean));
         putFood(food);
         haptics.success();
-        router.replace({ pathname: '/food/add', params: { foodId: food.id, meal: params.meal ?? '', date: params.date ?? '' } });
+        router.replace({ pathname: '/food/add', params: { foodId: food.id, meal: params.meal ?? '', date: params.date ?? '', recipeId: params.recipeId ?? '' } });
       } catch (e) {
         haptics.warning();
         const err = e instanceof OffError ? e : new OffError('Unbekannter Fehler', 'network');
@@ -43,7 +43,7 @@ export default function Scan() {
         else setStatus({ kind: 'error', code: clean, message: err.message });
       }
     },
-    [actions, haptics, params.date, params.meal, state],
+    [actions, haptics, params.date, params.meal, params.recipeId, state],
   );
 
   const onScanned = useCallback(
@@ -138,7 +138,7 @@ export default function Scan() {
                   title="Produkt selbst anlegen"
                   icon="plus"
                   testID="scan-create"
-                  onPress={() => router.replace({ pathname: '/food/custom', params: { barcode: status.code, meal: params.meal ?? '', date: params.date ?? '' } })}
+                  onPress={() => router.replace({ pathname: '/food/custom', params: { barcode: status.code, meal: params.meal ?? '', date: params.date ?? '', recipeId: params.recipeId ?? '' } })}
                 />
               ) : (
                 <Button title="Erneut versuchen" icon="refresh" onPress={() => void lookup(status.code)} />

@@ -25,6 +25,7 @@ export default function GymPlans() {
           router.push({ pathname: '/gym/plan-edit', params: { id } });
         }}
       />
+      <Button title="Plan importieren (von Freunden)" icon="download" variant="secondary" onPress={() => router.push('/gym/import')} testID="plans-import" />
       {plans.length === 0 ? (
         <EmptyState icon="clipboard-text-outline" title="Noch keine Pläne" text="Ein Trainingsplan legt fest, welche Geräte du an welchem Tag trainierst – mit Sätzen, Wiederholungen und Pausen." />
       ) : null}

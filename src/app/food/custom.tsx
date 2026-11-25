@@ -12,7 +12,7 @@ import { useTheme } from '../../lib/theme';
 import type { FoodItem } from '../../lib/types';
 
 export default function CustomFood() {
-  const params = useLocalSearchParams<{ id?: string; barcode?: string; meal?: string; date?: string }>();
+  const params = useLocalSearchParams<{ id?: string; barcode?: string; meal?: string; date?: string; recipeId?: string }>();
   const { state, actions } = useStore();
   const { colors } = useTheme();
   const toast = useToast();
@@ -68,7 +68,7 @@ export default function CustomFood() {
     putFood(food);
     toast({ message: existing ? 'Lebensmittel aktualisiert' : 'Lebensmittel gespeichert', icon: 'check' });
     if (!existing && (params.meal !== undefined || params.date !== undefined || params.barcode)) {
-      router.replace({ pathname: '/food/add', params: { foodId: food.id, meal: params.meal ?? '', date: params.date ?? '' } });
+      router.replace({ pathname: '/food/add', params: { foodId: food.id, meal: params.meal ?? '', date: params.date ?? '', recipeId: params.recipeId ?? '' } });
     } else {
       router.back();
     }

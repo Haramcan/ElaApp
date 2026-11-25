@@ -159,6 +159,11 @@ export default function Progress() {
         <Button title="Erfolge" icon="trophy-outline" variant="secondary" full={false} style={{ flex: 1 }} onPress={() => router.push('/achievements')} />
         <Button title="Tagesverlauf" icon="calendar-month" variant="secondary" full={false} style={{ flex: 1 }} onPress={() => router.push('/history')} />
       </Row>
+      <Row gap={10}>
+        <Button title="Wochenrückblick" icon="chart-box-outline" variant="secondary" full={false} style={{ flex: 1 }} onPress={() => router.push('/review')} />
+        <Button title="Fotos" icon="camera-outline" variant="secondary" full={false} style={{ flex: 1 }} onPress={() => router.push('/photos')} />
+      </Row>
+      <Button title="Schlaf & Stimmung" icon="weather-night" variant="secondary" onPress={() => router.push('/wellbeing')} />
     </Screen>
   );
 }

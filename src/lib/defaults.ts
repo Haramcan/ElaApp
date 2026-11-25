@@ -34,6 +34,10 @@ export const DEFAULT_SETTINGS: Settings = {
   gymWeightStep: 2.5,
   gymRestSec: 90,
   gymAutoRest: true,
+  healthSync: false,
+  widgetMetric: 'overview',
+  liveStatus: false,
+  liveMetric: 'steps',
 };
 
 export function goalsFromProfile(profile: Profile, weightKg: number, prev?: Partial<Goals>): Goals {
@@ -145,6 +149,14 @@ export const DEFAULT_REMINDERS: Reminder[] = [
     times: [{ hour: 20, minute: 30 }],
   }),
   reminder({
+    id: 'rem_weekly',
+    type: 'weekly',
+    title: 'Dein Wochenrückblick 📊',
+    body: 'Schau dir an, wie deine Woche gelaufen ist – und was du nächste Woche besser machen kannst.',
+    times: [{ hour: 19, minute: 0 }],
+    weekdays: [7],
+  }),
+  reminder({
     id: 'rem_fasting',
     type: 'fasting',
     title: 'Fasten',
@@ -177,6 +189,10 @@ export function createInitialState(): AppState {
     stats: { scans: 0, guidedWorkouts: 0 },
     unlockedAchievements: {},
     gym: { sessions: [], plans: [], customExercises: [], notes: {} },
+    recipes: [],
+    sleep: {},
+    mood: {},
+    photos: [],
   };
 }
 
@@ -227,5 +243,10 @@ export function migrateState(raw: unknown): AppState {
         notes: obj(g.notes, {}),
       };
     })(),
+    recipes: arr(r.recipes, []),
+    sleep: obj(r.sleep, {}),
+    mood: obj(r.mood, {}),
+    photos: arr(r.photos, []),
+    healthSyncedAt: typeof r.healthSyncedAt === 'number' ? r.healthSyncedAt : undefined,
   };
 }

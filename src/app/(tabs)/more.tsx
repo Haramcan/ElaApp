@@ -29,6 +29,10 @@ export default function More() {
       title: 'Funktionen',
       items: [
         { title: 'Krafttraining & Trainingspläne', subtitle: `${state.gym.plans.length} Pläne · ${state.gym.sessions.length} Trainings`, icon: 'weight-lifter', href: '/gym' },
+        { title: 'Rezepte & Mahlzeit-Vorlagen', subtitle: `${state.recipes.length} gespeichert`, icon: 'chef-hat', href: '/food/recipes' },
+        { title: 'Wochenrückblick', icon: 'chart-box-outline', href: '/review' },
+        { title: 'Schlaf & Stimmung', icon: 'weather-night', href: '/wellbeing' },
+        { title: 'Fortschrittsfotos', subtitle: `${state.photos.length} Fotos`, icon: 'camera-outline', href: '/photos' },
         { title: 'Intervallfasten', subtitle: state.fasting.active ? 'Läuft gerade' : `${state.fasting.targetHours}:${24 - state.fasting.targetHours}`, icon: 'timer-sand', href: '/fasting' },
         { title: 'Gewicht & Maße', icon: 'scale-bathroom', href: '/weight' },
         { title: 'Meine Lebensmittel', subtitle: `${state.customFoods.length} eigene · ${state.favorites.length} Favoriten`, icon: 'food-apple-outline', href: '/food/my-foods' },
@@ -39,6 +43,9 @@ export default function More() {
     {
       title: 'App',
       items: [
+        { title: 'Apple Health / Health Connect', subtitle: state.settings.healthSync ? 'Verbunden' : 'Nicht verbunden', icon: 'heart-pulse', href: '/settings/health', testID: 'more-health' },
+        { title: 'Widgets & Live-Anzeige', subtitle: 'Homescreen, Dynamic Island', icon: 'widgets-outline', href: '/settings/widgets', testID: 'more-widgets' },
+        { title: 'KI-Foto-Erkennung', subtitle: 'API-Schlüssel', icon: 'robot-outline', href: '/settings/ai' },
         { title: 'App-Einstellungen', subtitle: 'Design, Einheiten, Haptik, Workout', icon: 'tune', href: '/settings/app', testID: 'more-app' },
         { title: 'Daten & Backup', subtitle: 'Export, Import, Zurücksetzen', icon: 'database-outline', href: '/settings/data', testID: 'more-data' },
         { title: 'Info & Hilfe', icon: 'information-outline', href: '/settings/about' },

@@ -1,5 +1,6 @@
 import { formatNumber } from './calc';
 import { addDays, dateKey, isoWeekday, parseKey } from './date';
+import { weekSummaryLine } from './review';
 import { challengeProgress, daySummary, entriesFor } from './selectors';
 import type { AppState, Reminder, ReminderTime } from './types';
 
@@ -50,6 +51,8 @@ function urlFor(r: Reminder): string {
       return '/weight';
     case 'fasting':
       return '/fasting';
+    case 'weekly':
+      return '/review';
     default:
       return '/';
   }
@@ -87,6 +90,8 @@ function todaysBody(r: Reminder, state: AppState, today: string): string | null 
       if (state.weights.some((w) => w.date === today)) return null;
       return r.body;
     }
+    case 'weekly':
+      return weekSummaryLine(state, today);
     case 'goalcheck': {
       const parts: string[] = [];
       if (s.remaining > 50) parts.push(`${formatNumber(s.remaining)} kcal übrig`);

@@ -60,6 +60,58 @@ export interface Settings {
   gymRestSec: number;
   /** start the rest timer automatically after a set is checked */
   gymAutoRest: boolean;
+  /** sync steps, sleep, weight and workouts with Apple Health / Health Connect */
+  healthSync: boolean;
+  /** what the home screen widget shows (iPhone: default, can also be chosen per widget) */
+  widgetMetric: WidgetMetric;
+  /** show today's progress as a Live Activity (iPhone Dynamic Island) / ongoing notification (Android) */
+  liveStatus: boolean;
+  /** what the Live Activity / ongoing notification shows */
+  liveMetric: WidgetMetric;
+}
+
+export type WidgetMetric = 'overview' | 'steps' | 'kcal' | 'water' | 'protein' | 'challenge';
+
+export interface RecipeIngredient {
+  food: FoodItem;
+  /** g / ml */
+  amount: number;
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  /** number of portions the ingredients make */
+  servings: number;
+  ingredients: RecipeIngredient[];
+  createdAt: number;
+  note?: string;
+}
+
+export interface SleepEntry {
+  hours: number;
+  /** 1–5 */
+  quality?: number;
+  source: 'manual' | 'health';
+}
+
+export interface MoodEntry {
+  /** 1–5 */
+  score: number;
+  /** 1–5 */
+  energy?: number;
+  note?: string;
+}
+
+export type PhotoPose = 'front' | 'side' | 'back';
+
+export interface ProgressPhoto {
+  id: string;
+  date: string;
+  uri: string;
+  pose: PhotoPose;
+  weightKg?: number;
+  createdAt: number;
 }
 
 export interface Nutrients {
@@ -85,7 +137,7 @@ export interface FoodItem {
   servingLabel?: string;
   nutriScore?: string;
   imageUrl?: string;
-  source: 'off' | 'custom' | 'builtin' | 'quick';
+  source: 'off' | 'custom' | 'builtin' | 'quick' | 'recipe' | 'ai';
 }
 
 export interface FoodEntry {
@@ -138,6 +190,7 @@ export type ReminderType =
   | 'weight'
   | 'goalcheck'
   | 'fasting'
+  | 'weekly'
   | 'custom';
 
 export interface ReminderTime {
@@ -275,4 +328,10 @@ export interface AppState {
   stats: { scans: number; guidedWorkouts: number };
   unlockedAchievements: Record<string, number>;
   gym: GymState;
+  recipes: Recipe[];
+  sleep: Record<string, SleepEntry>;
+  mood: Record<string, MoodEntry>;
+  photos: ProgressPhoto[];
+  /** last successful health sync (ms) */
+  healthSyncedAt?: number;
 }

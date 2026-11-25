@@ -2,7 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 
-import { LastTimeLine, useStartGym } from '../../components/gym';
+import { LastTimeLine, useSharePlan, useStartGym } from '../../components/gym';
 import { useToast } from '../../components/Toast';
 import { Badge, Button, Card, Divider, EmptyState, IconButton, Input, Row, Screen, Stepper, Txt } from '../../components/ui';
 import { getGymExercise } from '../../lib/gym';
@@ -17,6 +17,7 @@ export default function PlanEdit() {
   const { colors } = useTheme();
   const toast = useToast();
   const plan = state.gym.plans.find((p) => p.id === id);
+  const share = useSharePlan();
 
   if (!plan) {
     return (
@@ -54,6 +55,7 @@ export default function PlanEdit() {
           testID="plan-add-day"
           onPress={() => actions.addPlanDay(plan.id, `Tag ${String.fromCharCode(65 + Math.min(25, plan.days.length))}`)}
         />
+        <Button title="Plan teilen" icon="share-variant" variant="secondary" onPress={() => void share(plan)} testID="plan-share" />
         <Button
           title="Plan löschen"
           icon="delete"

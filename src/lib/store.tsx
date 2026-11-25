@@ -15,8 +15,12 @@ import type {
   GymExercise,
   GymExerciseLog,
   GymSession,
+  MoodEntry,
   PlanDay,
   PlanExercise,
+  ProgressPhoto,
+  Recipe,
+  SleepEntry,
   TrainingPlan,
   MealType,
   Profile,
@@ -408,6 +412,72 @@ export function createActions(set: (fn: (s: AppState) => AppState) => void) {
           ),
         },
       }));
+    },
+
+    // ---------- recipes ----------
+    createRecipe(name: string, init: Partial<Recipe> = {}): string {
+      const id = uid('rc_');
+      set((s) => ({ ...s, recipes: [{ id, name, servings: 1, ingredients: [], createdAt: Date.now(), ...init }, ...s.recipes] }));
+      return id;
+    },
+    updateRecipe(id: string, fn: (r: Recipe) => Recipe) {
+      set((s) => ({ ...s, recipes: s.recipes.map((r) => (r.id === id ? fn(r) : r)) }));
+    },
+    addRecipeIngredient(id: string, food: FoodItem, amount: number) {
+      set((s) => ({
+        ...s,
+        recipes: s.recipes.map((r) => (r.id === id ? { ...r, ingredients: [...r.ingredients, { food, amount }] } : r)),
+        recentFoods: pushRecent(s.recentFoods, food),
+      }));
+    },
+    deleteRecipe(id: string) {
+      set((s) => ({ ...s, recipes: s.recipes.filter((r) => r.id !== id) }));
+    },
+
+    // ---------- sleep & mood ----------
+    setSleep(date: string, entry: SleepEntry | null) {
+      set((s) => {
+        const sleep = { ...s.sleep };
+        if (entry) sleep[date] = entry;
+        else delete sleep[date];
+        return { ...s, sleep };
+      });
+    },
+    setMood(date: string, entry: MoodEntry | null) {
+      set((s) => {
+        const mood = { ...s.mood };
+        if (entry) mood[date] = entry;
+        else delete mood[date];
+        return { ...s, mood };
+      });
+    },
+
+    // ---------- progress photos ----------
+    addPhoto(photo: Omit<ProgressPhoto, 'id' | 'createdAt'>): string {
+      const id = uid('ph_');
+      set((s) => ({ ...s, photos: [...s.photos, { ...photo, id, createdAt: Date.now() }] }));
+      return id;
+    },
+    removePhoto(id: string) {
+      set((s) => ({ ...s, photos: s.photos.filter((p) => p.id !== id) }));
+    },
+
+    // ---------- health import ----------
+    /** merges data read from Apple Health / Health Connect; manual entries win for sleep */
+    mergeHealthData(data: { steps?: Record<string, number>; sleep?: Record<string, number>; weights?: { date: string; kg: number }[] }) {
+      set((s) => {
+        const steps = { ...s.steps };
+        for (const [d, v] of Object.entries(data.steps ?? {})) if (v > (steps[d] ?? 0)) steps[d] = Math.round(v);
+        const sleep = { ...s.sleep };
+        for (const [d, h] of Object.entries(data.sleep ?? {})) {
+          if (h > 0 && (!sleep[d] || sleep[d].source === 'health')) sleep[d] = { ...(sleep[d] ?? {}), hours: Math.round(h * 10) / 10, source: 'health' };
+        }
+        const weights = [...s.weights];
+        for (const w of data.weights ?? []) {
+          if (!weights.some((x) => x.date === w.date)) weights.push({ id: uid('w_'), date: w.date, kg: Math.round(w.kg * 10) / 10, createdAt: Date.now() });
+        }
+        return withAutoGoals({ ...s, steps, sleep, weights, healthSyncedAt: Date.now() });
+      });
     },
 
     // ---------- misc ----------

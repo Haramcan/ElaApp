@@ -76,6 +76,7 @@ export default function GymHome() {
         <Button title="Freies Training" icon="play-circle-outline" variant="soft" full={false} style={{ flex: 1 }} onPress={() => void start()} testID="gym-start-free" />
         <Button title="Pläne" icon="clipboard-list-outline" variant="secondary" full={false} style={{ flex: 1 }} onPress={() => router.push('/gym/plans')} testID="gym-plans" />
       </Row>
+      <Button title="Muskel-Übersicht" icon="human" variant="secondary" onPress={() => router.push('/gym/muscles')} testID="gym-muscles" />
       <Button title="Geräte & Übungen · Verlauf" icon="weight-lifter" variant="secondary" onPress={() => router.push('/gym/exercises')} testID="gym-library" />
 
       <Row gap={10}>

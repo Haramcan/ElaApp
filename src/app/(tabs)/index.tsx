@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { ProgressRing } from '../../components/charts';
+import { WellbeingCard } from '../../components/WellbeingCard';
 import { Badge, Button, Card, Icon, IconButton, NumberInput, ProgressBar, Row, Screen, SectionHeader, Txt } from '../../components/ui';
 import { energyValue, formatNumber, formatWeight } from '../../lib/calc';
 import { dateKey, formatDuration, greeting, parseKey } from '../../lib/date';
@@ -95,7 +96,7 @@ export default function Today() {
       <Row gap={10}>
         <QuickAction icon="barcode-scan" label="Scannen" onPress={() => router.push('/scan')} testID="qa-scan" />
         <QuickAction icon="magnify" label="Suchen" onPress={() => router.push('/food/search')} testID="qa-search" />
-        <QuickAction icon="lightning-bolt" label="Schnell" onPress={() => router.push('/food/quick')} testID="qa-quick" />
+        <QuickAction icon="camera-outline" label="Foto" onPress={() => router.push('/food/photo')} testID="qa-photo" />
         <QuickAction icon="run" label="Aktivität" onPress={() => router.push('/workout/log')} testID="qa-workout" />
       </Row>
 
@@ -242,6 +243,25 @@ export default function Today() {
             Ziel {formatWeight(state.profile.targetWeightKg, state.settings.weightUnit)}
           </Txt>
           {!state.weights.some((w) => w.date === dateKey()) ? <Badge label="Heute eintragen" /> : null}
+        </Card>
+      </Row>
+
+      <WellbeingCard date={today} />
+
+      <Row gap={10} align="stretch">
+        <Card style={{ flex: 1, gap: 6 }} onPress={() => router.push('/food/suggest')} testID="dash-suggest">
+          <Icon name="silverware-variant" color={colors.primary} />
+          <Txt variant="small" bold>
+            Was kann ich noch essen?
+          </Txt>
+          <Txt variant="caption">Ideen für {formatNumber(Math.max(0, energyValue(s.remaining, unit)))} {unit}</Txt>
+        </Card>
+        <Card style={{ flex: 1, gap: 6 }} onPress={() => router.push('/review')} testID="dash-review">
+          <Icon name="chart-box-outline" color={colors.primary} />
+          <Txt variant="small" bold>
+            Wochenrückblick
+          </Txt>
+          <Txt variant="caption">Deine Woche auf einen Blick</Txt>
         </Card>
       </Row>
 

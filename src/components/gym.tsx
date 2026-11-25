@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, TextInput, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Platform, Pressable, Share, TextInput, View } from 'react-native';
 
 import { displayWeight, formatNumber, parseNumber } from '../lib/calc';
 import { formatClock } from '../lib/date';
@@ -9,6 +10,7 @@ import { useNow } from '../lib/hooks';
 import { confirm, useHaptics } from '../lib/platform';
 import { useStore } from '../lib/store';
 import { radius, useTheme } from '../lib/theme';
+import { encodePlan, shareMessage } from '../lib/planShare';
 import type { PlanDay, TrainingPlan } from '../lib/types';
 import { useToast } from './Toast';
 import { Button, IconButton, Row, Txt } from './ui';
@@ -216,4 +218,29 @@ export function exerciseLabel(state: ReturnType<typeof useStore>['state'], id: s
 
 export function SmallIconButton(props: { icon: string; label: string; onPress: () => void; disabled?: boolean; color?: string; testID?: string }) {
   return <IconButton size={18} {...props} />;
+}
+
+/** Shares a plan as text (chat, mail …); falls back to copying it on platforms without a share sheet */
+export function useSharePlan() {
+  const { state } = useStore();
+  const toast = useToast();
+  return async (plan: TrainingPlan, from?: string) => {
+    const code = encodePlan(state, plan, from ?? state.profile.name);
+    const message = shareMessage(code, plan.name, from ?? state.profile.name);
+    try {
+      if (Platform.OS === 'web') {
+        const nav = (globalThis as { navigator?: { share?: (d: { text: string; title: string }) => Promise<void> } }).navigator;
+        if (nav?.share) await nav.share({ title: plan.name, text: message });
+        else {
+          await Clipboard.setStringAsync(message);
+          toast({ message: 'Plan in die Zwischenablage kopiert', icon: 'content-copy' });
+        }
+        return;
+      }
+      await Share.share({ title: `Trainingsplan: ${plan.name}`, message });
+    } catch {
+      await Clipboard.setStringAsync(message).catch(() => {});
+      toast({ message: 'Plan in die Zwischenablage kopiert', icon: 'content-copy' });
+    }
+  };
 }

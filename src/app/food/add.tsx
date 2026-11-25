@@ -15,7 +15,7 @@ import { useTheme } from '../../lib/theme';
 import type { FoodItem, MealType } from '../../lib/types';
 
 export default function AddFood() {
-  const params = useLocalSearchParams<{ foodId?: string; meal?: string; date?: string }>();
+  const params = useLocalSearchParams<{ foodId?: string; meal?: string; date?: string; recipeId?: string }>();
   const { state } = useStore();
   const food = findFood(params.foodId, state);
   if (!food) {
@@ -27,10 +27,10 @@ export default function AddFood() {
       </Screen>
     );
   }
-  return <AddFoodInner food={food} initialMeal={params.meal} date={params.date} />;
+  return <AddFoodInner food={food} initialMeal={params.meal} date={params.date} recipeId={params.recipeId || undefined} />;
 }
 
-function AddFoodInner({ food, initialMeal, date: dateParam }: { food: FoodItem; initialMeal?: string; date?: string }) {
+function AddFoodInner({ food, initialMeal, date: dateParam, recipeId }: { food: FoodItem; initialMeal?: string; date?: string; recipeId?: string }) {
   const { state, actions } = useStore();
   const { colors } = useTheme();
   const toast = useToast();
@@ -41,7 +41,15 @@ function AddFoodInner({ food, initialMeal, date: dateParam }: { food: FoodItem; 
   const st = useAmountState(food);
   const isFav = state.favorites.some((f) => f.id === food.id);
 
+  const recipe = recipeId ? state.recipes.find((r) => r.id === recipeId) : undefined;
   const add = () => {
+    if (recipe) {
+      actions.addRecipeIngredient(recipe.id, food, st.amount);
+      haptics.success();
+      toast({ message: `${food.name} zu „${recipe.name}“ hinzugefügt`, icon: 'check' });
+      router.dismissTo({ pathname: '/food/recipe-edit', params: { id: recipe.id } });
+      return;
+    }
     actions.addFood(food, st.amount, meal, date);
     haptics.success();
     toast({ message: `${food.name} (${formatNumber(st.amount)} ${food.unit}) hinzugefügt`, icon: 'check' });
@@ -75,9 +83,9 @@ function AddFoodInner({ food, initialMeal, date: dateParam }: { food: FoodItem; 
       <FoodHeader food={food} showNutri={state.settings.showNutriScore} />
       <AmountEditor food={food} st={st} meal={meal} setMeal={setMeal} energyUnit={state.settings.energyUnit} />
       <Txt variant="caption" center>
-        Wird eingetragen: {formatDayLabel(date, today)} · {mealLabel(meal)}
+        {recipe ? `Zutat für „${recipe.name}“` : `Wird eingetragen: ${formatDayLabel(date, today)} · ${mealLabel(meal)}`}
       </Txt>
-      <Button title="Hinzufügen" icon="plus" onPress={add} disabled={!(st.amount > 0)} testID="add-food-submit" />
+      <Button title={recipe ? 'Zum Rezept hinzufügen' : 'Hinzufügen'} icon="plus" onPress={add} disabled={!(st.amount > 0)} testID="add-food-submit" />
     </Screen>
   );
 }

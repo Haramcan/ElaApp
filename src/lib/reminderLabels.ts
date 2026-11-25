@@ -10,6 +10,7 @@ export const REMINDER_ICONS: Record<ReminderType, string> = {
   weight: 'scale-bathroom',
   goalcheck: 'check-decagram',
   fasting: 'timer-sand',
+  weekly: 'chart-box-outline',
   custom: 'bell-outline',
 };
 

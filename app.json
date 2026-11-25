@@ -12,7 +12,9 @@
       "bundleIdentifier": "com.elaapp.fitlife",
       "infoPlist": {
         "NSCameraUsageDescription": "FitLife nutzt die Kamera, um Barcodes von Lebensmitteln zu scannen.",
-        "NSMotionUsageDescription": "FitLife liest deine Schritte aus, um dein tägliches Schrittziel anzuzeigen."
+        "NSMotionUsageDescription": "FitLife liest deine Schritte aus, um dein tägliches Schrittziel anzuzeigen.",
+        "NSSupportsLiveActivities": true,
+        "NSPhotoLibraryUsageDescription": "FitLife nutzt deine Fotos für Fortschrittsfotos und die Kalorienschätzung per Foto."
       }
     },
     "android": {
@@ -24,10 +26,15 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "permissions": [
-        "android.permission.CAMERA",
         "android.permission.ACTIVITY_RECOGNITION",
+        "android.permission.CAMERA",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.WRITE_EXERCISE",
+        "android.permission.health.WRITE_WEIGHT"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -38,6 +45,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FitLife nutzt deine Fotos für Fortschrittsfotos und die Kalorienschätzung per Foto.",
+          "cameraPermission": "FitLife nutzt die Kamera für Barcodes, Essensfotos und Fortschrittsfotos.",
+          "microphonePermission": false
+        }
+      ],
       [
         "expo-camera",
         {
@@ -59,7 +74,95 @@
           "motionPermission": "FitLife liest deine Schritte aus, um dein tägliches Schrittziel anzuzeigen."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-widgets",
+        {
+          "enableAndroid": true,
+          "enablePushNotifications": true,
+          "widgets": [
+            {
+              "name": "FitWidget",
+              "displayName": "FitLife",
+              "description": "Schritte, Kalorien, Wasser, Eiweiß oder Challenges auf einen Blick",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryCircular",
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ],
+                "initialLayout": "./src/widgets/FitWidget.ios.tsx",
+                "configuration": {
+                  "title": "Anzeige wählen",
+                  "description": "Was soll dieses Widget zeigen?",
+                  "parameters": {
+                    "metric": {
+                      "title": "Anzeige",
+                      "type": "enum",
+                      "default": "app",
+                      "values": [
+                        {
+                          "name": "Wie in der App",
+                          "value": "app"
+                        },
+                        {
+                          "name": "Übersicht",
+                          "value": "overview"
+                        },
+                        {
+                          "name": "Schritte",
+                          "value": "steps"
+                        },
+                        {
+                          "name": "Kalorien",
+                          "value": "kcal"
+                        },
+                        {
+                          "name": "Wasser",
+                          "value": "water"
+                        },
+                        {
+                          "name": "Eiweiß",
+                          "value": "protein"
+                        },
+                        {
+                          "name": "Challenges",
+                          "value": "challenge"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              "android": {
+                "targetCellWidth": 2,
+                "targetCellHeight": 2,
+                "initialLayout": "./src/widgets/FitWidget.android.tsx"
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "FitLife liest Schritte, Schlaf und Gewicht aus Apple Health, um deine Tagesziele anzuzeigen.",
+          "NSHealthUpdateUsageDescription": "FitLife speichert deine Trainings und dein Gewicht in Apple Health.",
+          "background": false
+        }
+      ],
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false

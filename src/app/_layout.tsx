@@ -68,6 +68,18 @@ function ThemedApp() {
           <Stack.Screen name="food/quick" options={{ title: 'Schnell-Eintrag' }} />
           <Stack.Screen name="food/entry" options={{ title: 'Eintrag bearbeiten' }} />
           <Stack.Screen name="food/my-foods" options={{ title: 'Meine Lebensmittel' }} />
+          <Stack.Screen name="food/recipes" options={{ title: 'Rezepte & Vorlagen' }} />
+          <Stack.Screen name="food/recipe-edit" options={{ title: 'Rezept' }} />
+          <Stack.Screen name="food/suggest" options={{ title: 'Essens-Ideen' }} />
+          <Stack.Screen name="food/photo" options={{ title: 'Kalorien per Foto' }} />
+          <Stack.Screen name="gym/muscles" options={{ title: 'Muskel-Übersicht' }} />
+          <Stack.Screen name="gym/import" options={{ title: 'Plan importieren' }} />
+          <Stack.Screen name="review" options={{ title: 'Wochenrückblick' }} />
+          <Stack.Screen name="wellbeing" options={{ title: 'Schlaf & Stimmung' }} />
+          <Stack.Screen name="photos" options={{ title: 'Fortschrittsfotos' }} />
+          <Stack.Screen name="settings/ai" options={{ title: 'KI-Foto-Erkennung' }} />
+          <Stack.Screen name="settings/health" options={{ title: 'Apple Health / Health Connect' }} />
+          <Stack.Screen name="settings/widgets" options={{ title: 'Widgets & Live-Anzeige' }} />
           <Stack.Screen name="workout/log" options={{ title: 'Aktivität eintragen' }} />
           <Stack.Screen name="workout/session" options={{ title: 'Workout', headerShown: false, gestureEnabled: false }} />
           <Stack.Screen name="workout/plan" options={{ title: 'Workout' }} />

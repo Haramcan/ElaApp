@@ -9,6 +9,7 @@ import { energyValue, formatNumber, nutrientsFor } from '../../lib/calc';
 import { addDays, formatDayLabel } from '../../lib/date';
 import { useToday } from '../../lib/hooks';
 import { useHaptics } from '../../lib/platform';
+import { ingredientsFromEntries } from '../../lib/recipes';
 import { MEALS, daySummary, entriesFor } from '../../lib/selectors';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
@@ -67,6 +68,11 @@ export default function Nutrition() {
         <Button title="Scannen" icon="barcode-scan" variant="soft" full={false} style={{ flex: 1 }} onPress={() => router.push({ pathname: '/scan', params: { date } })} testID="nut-scan" />
         <Button title="Suchen" icon="magnify" variant="soft" full={false} style={{ flex: 1 }} onPress={() => router.push({ pathname: '/food/search', params: { date } })} testID="nut-search" />
       </Row>
+      <Row gap={10}>
+        <Button title="Foto (KI)" icon="camera-outline" variant="secondary" small full={false} style={{ flex: 1 }} onPress={() => router.push({ pathname: '/food/photo', params: { date } })} testID="nut-photo" />
+        <Button title="Rezepte" icon="chef-hat" variant="secondary" small full={false} style={{ flex: 1 }} onPress={() => router.push({ pathname: '/food/recipes', params: { date } })} testID="nut-recipes" />
+        <Button title="Ideen" icon="lightbulb-on-outline" variant="secondary" small full={false} style={{ flex: 1 }} onPress={() => router.push({ pathname: '/food/suggest', params: { date } })} testID="nut-suggest" />
+      </Row>
 
       {MEALS.map((m) => (
         <MealCard
@@ -84,6 +90,11 @@ export default function Nutrition() {
             toast({ message: `${src.length} Einträge von gestern übernommen`, icon: 'content-copy' });
           }}
           yesterdayCount={state.foodLog.filter((e) => e.date === addDays(date, -1) && e.meal === m.id).length}
+          onSaveTemplate={() => {
+            const list = entries.filter((e) => e.meal === m.id);
+            const id = actions.createRecipe(`Mein ${m.label}`, { ingredients: ingredientsFromEntries(list), servings: 1 });
+            toast({ message: `Als Vorlage „Mein ${m.label}“ gespeichert`, icon: 'chef-hat', actionLabel: 'Öffnen', onAction: () => router.push({ pathname: '/food/recipe-edit', params: { id } }) });
+          }}
         />
       ))}
 
@@ -136,6 +147,7 @@ function MealCard({
   unit,
   onRemove,
   onCopyYesterday,
+  onSaveTemplate,
   yesterdayCount,
 }: {
   meal: MealType;
@@ -146,6 +158,7 @@ function MealCard({
   unit: 'kcal' | 'kJ';
   onRemove: (e: FoodEntry) => void;
   onCopyYesterday: () => void;
+  onSaveTemplate: () => void;
   yesterdayCount: number;
 }) {
   const { colors } = useTheme();
@@ -202,6 +215,16 @@ function MealCard({
           </Pressable>
         );
       })}
+      {sorted.length > 1 ? (
+        <Pressable onPress={onSaveTemplate} accessibilityRole="button" style={{ paddingTop: 6 }} testID={`meal-template-${meal}`}>
+          <Row gap={6}>
+            <Icon name="content-save-outline" size={16} color={colors.primary} />
+            <Txt variant="small" color={colors.primary} bold>
+              Als Vorlage speichern
+            </Txt>
+          </Row>
+        </Pressable>
+      ) : null}
       {sorted.length === 0 && yesterdayCount > 0 ? (
         <Pressable onPress={onCopyYesterday} accessibilityRole="button" style={{ paddingTop: 6 }}>
           <Row gap={6}>

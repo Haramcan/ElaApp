@@ -2,8 +2,9 @@ import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 
+import { useSharePlan } from '../../components/gym';
 import { useToast } from '../../components/Toast';
-import { Button, Card, Chip, Divider, Row, Screen, Segmented, Txt } from '../../components/ui';
+import { Button, Card, Chip, Divider, Input, Row, Screen, Segmented, Txt } from '../../components/ui';
 import { generatePlan, getGymExercise, GOAL_LABELS, makeKey, type PlanEquipment, type PlanGoal, type PlanLevel } from '../../lib/gym';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
@@ -24,6 +25,9 @@ export default function PlanGenerator() {
   const [level, setLevel] = useState<PlanLevel>(state.gym.sessions.length > 20 ? 'fortgeschritten' : 'anfaenger');
   const [equipment, setEquipment] = useState<PlanEquipment>('maschinen');
   const [focus, setFocus] = useState<'ausgewogen' | 'oberkoerper' | 'beine_po'>('ausgewogen');
+  const [forWhom, setForWhom] = useState<'me' | 'other'>('me');
+  const [otherName, setOtherName] = useState('');
+  const share = useSharePlan();
 
   const plan = useMemo(() => generatePlan({ goal, daysPerWeek: days, level, equipment, focus }, makeKey), [goal, days, level, equipment, focus]);
 
@@ -32,7 +36,26 @@ export default function PlanGenerator() {
       <Txt variant="small">Beantworte ein paar Fragen – wir stellen dir einen passenden Plan mit Geräten aus dem Fitnessstudio zusammen. Du kannst ihn danach beliebig anpassen.</Txt>
 
       <Card style={{ gap: 10 }}>
-        <Txt variant="h3">Dein Ziel</Txt>
+        <Txt variant="h3">Für wen ist der Plan?</Txt>
+        <Segmented
+          testIDPrefix="gen-for"
+          options={[
+            { value: 'me', label: 'Für mich' },
+            { value: 'other', label: 'Für jemand anderen' },
+          ]}
+          value={forWhom}
+          onChange={setForWhom}
+        />
+        {forWhom === 'other' ? (
+          <>
+            <Input label="Name (optional)" value={otherName} onChangeText={setOtherName} placeholder="z. B. Lisa" maxLength={30} testID="gen-other-name" />
+            <Txt variant="caption">Wähle die Wünsche der Person aus – danach kannst du den Plan per WhatsApp, iMessage o. Ä. schicken. Sie importiert ihn in ihrer FitLife-App.</Txt>
+          </>
+        ) : null}
+      </Card>
+
+      <Card style={{ gap: 10 }}>
+        <Txt variant="h3">{forWhom === 'me' ? 'Dein Ziel' : 'Ziel'}</Txt>
         <Row gap={6} wrap>
           {(Object.keys(GOAL_LABELS) as PlanGoal[]).map((g) => (
             <Chip key={g} label={GOAL_LABELS[g]} selected={goal === g} onPress={() => setGoal(g)} testID={`gen-goal-${g}`} />
@@ -107,8 +130,17 @@ export default function PlanGenerator() {
         </Card>
       ))}
 
+      {forWhom === 'other' ? (
+        <Button
+          title={`Plan ${otherName.trim() ? `an ${otherName.trim()} ` : ''}schicken`}
+          icon="share-variant"
+          testID="gen-share"
+          onPress={() => void share({ ...plan, name: otherName.trim() ? `${plan.name} (für ${otherName.trim()})` : plan.name })}
+        />
+      ) : null}
       <Button
-        title="Plan übernehmen"
+        title={forWhom === 'other' ? 'Zusätzlich selbst speichern' : 'Plan übernehmen'}
+        variant={forWhom === 'other' ? 'secondary' : 'primary'}
         icon="check"
         testID="gen-save"
         onPress={() => {
